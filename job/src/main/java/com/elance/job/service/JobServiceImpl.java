@@ -1,13 +1,19 @@
 package com.elance.job.service;
 
 import com.elance.job.dto.JobDto;
+import com.elance.job.dto.JobPageDto;
+import com.elance.job.exception.JobNotFoundException;
 import com.elance.job.model.Job;
 import com.elance.job.repository.JobRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -20,24 +26,39 @@ public class JobServiceImpl implements JobService{
     private ModelMapper modelMapper;
 
     @Override
-    public List<JobDto> listJob() {
-        return jobRepository.findAllJob();
+    public JobPageDto listJob(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Job> reviews = jobRepository.findAll(pageable);
+        List<Job> listOfJobs = reviews.getContent();
+        List<JobDto> content = listOfJobs.stream()
+                .map(job -> modelMapper.map(job, JobDto.class)).collect(Collectors.toList());
+
+        JobPageDto jobPage = new JobPageDto();
+        jobPage.setContent(content);
+        jobPage.setPageSize(reviews.getSize());
+        jobPage.setPageNo(reviews.getNumber());
+        jobPage.setTotalPages(reviews.getTotalPages());
+        jobPage.setTotalElements(reviews.getNumberOfElements());
+        jobPage.setLast(reviews.isLast());
+        return jobPage;
         /*return jobRepository.stream().map(job -> modelMapper.map(job, JobDto.class))
                 .collect(Collectors.toList());*/
     }
 
     @Override
-    public Optional<JobDto> getJob(long id) {
-        return jobRepository.findJobById(id);
+    public JobDto getJob(long id) {
+        return jobRepository.findJobById(id).orElseThrow(
+                () -> new JobNotFoundException("Job not found,id: "+ id));
         /*return jobRepository.findById(id)
                 .map(job -> Optional.of(modelMapper.map(job, JobDto.class)))
                 .orElse(Optional.empty());*/
     }
 
     @Override
-    public Optional<JobDto> getJobAndApplicants(long jobId) {
-        return Optional.of(modelMapper.map(jobRepository.findJobWithApplicantById(jobId),
-                JobDto.class));
+    public JobDto getJobAndApplicants(long jobId) {
+        Job job = jobRepository.findJobWithApplicantById(jobId).orElseThrow(
+                () -> new JobNotFoundException("Job not found,id: "+ jobId));
+        return modelMapper.map(job, JobDto.class);
     }
     @Override
     public JobDto postJob(JobDto jobDto) {
@@ -46,8 +67,10 @@ public class JobServiceImpl implements JobService{
     }
 
     @Override
-    public Optional<JobDto> findByIdAndVersion(long id, long version) {
-        return jobRepository.findByIdAndVersion(id, version);
+    public JobDto findByIdAndVersion(long id, long version) {
+        return jobRepository.findByIdAndVersion(id, version)
+                .orElseThrow(() -> new JobNotFoundException("Job not found,id"));
+
     }
 
     @Override

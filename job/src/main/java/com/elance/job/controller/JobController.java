@@ -1,6 +1,8 @@
 package com.elance.job.controller;
 
 import com.elance.job.dto.JobDto;
+import com.elance.job.dto.JobPageDto;
+import com.elance.job.exception.JobNotFoundException;
 import com.elance.job.service.JobService;
 import com.elance.job.model.Job;
 import org.apache.logging.log4j.LogManager;
@@ -16,15 +18,15 @@ import java.util.Optional;
 
 
 @RestController
-@RequestMapping("/api/v1/")
+@RequestMapping("/api/v1/jobs/")
 public class JobController {
 
-    Logger logger = LogManager.getLogger(JobController.class.getName());
+    private static Logger logger = LogManager.getLogger(JobController.class.getName());
 
     @Autowired
     JobService jobService;
 
-    @GetMapping("jobs")
+    /*@GetMapping()
     public ResponseEntity<List<JobDto>> listJobs() {
         logger.info("Starting list Job");
         try {
@@ -35,22 +37,35 @@ public class JobController {
             logger.error("Error occurred while executing list job",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }*/
+    @GetMapping()
+    public ResponseEntity<JobPageDto> listJobs(
+            @RequestParam(value = "pageNo", defaultValue="0", required=false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue="10", required=false) int pageSize
+    ){
+        logger.info("Starting list Job");
+        try {
+            JobPageDto jobPageDto = jobService.listJob(pageNo, pageSize);
+            logger.info("list Job complete");
+            return ResponseEntity.ok(jobPageDto);
+        }  catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @GetMapping("jobs/{id}")
+    @GetMapping("{id}")
     public ResponseEntity<JobDto> getJob(@PathVariable Long id){
         logger.info("Starting get job with id {}", id);
         try{
-            Optional<JobDto> job = jobService.getJob(id);
-            if(job.isPresent())
-                return ResponseEntity.ok(jobService.getJob(id).get());
-
-            logger.info("There is no job with id {}", id);
+            JobDto jobDto = jobService.getJob(id);
+            return ResponseEntity.ok(jobDto);
+        }catch (JobNotFoundException ex) {
+            logger.info(ex);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }catch (Exception e) {
+        } catch (Exception e) {
             logger.error("Error occurred while getting job with id {}", id);
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

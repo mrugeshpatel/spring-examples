@@ -30,7 +30,8 @@ public class Job {
     private String description;
     private Double rate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate  updatedOn;
+    private LocalDate updatedOn;
+    // LocalDateTime
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate postedOn;
     @Enumerated(EnumType.STRING)

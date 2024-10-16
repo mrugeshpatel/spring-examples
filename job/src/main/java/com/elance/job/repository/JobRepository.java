@@ -13,10 +13,10 @@ import java.util.Optional;
 @Repository
 public interface JobRepository extends JpaRepository<Job, Long> {
 
-    @Query("SELECT new com.elance.job.dto.JobDto(j.id, j.version, j.title, " +
+   /* @Query("SELECT new com.elance.job.dto.JobDto(j.id, j.version, j.title, " +
             "j.description, j.rate, j.postedOn, j.updatedOn,j.status, null ) " +
             "FROM Job j")
-    List<JobDto> findAllJob();
+    List<JobDto> findAllJob();*/
 
     @Query("SELECT new com.elance.job.dto.JobDto(j.id, j.version, j.title, " +
             "j.description, j.rate, j.postedOn, j.updatedOn,j.status, null) " +
