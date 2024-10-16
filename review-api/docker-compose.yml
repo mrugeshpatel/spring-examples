@@ -1,0 +1,24 @@
+services:
+  api_service:
+    build: .
+    restart: always
+    ports:
+      - ${SERVICE_PORT}:8080
+    networks:
+      - springapimysql-net
+    depends_on:
+      - mysqldb
+
+  mysqldb:
+    image: "mysql:latest"
+    restart: always
+    ports:
+      - ${DB_PORT}:3306
+    networks:
+      - springapimysql-net
+    environment:
+      MYSQL_DATABASE: ${DB_SCHEMA}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+
+networks:
+  springapimysql-net:
