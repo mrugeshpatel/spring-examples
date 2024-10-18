@@ -100,6 +100,9 @@ public class JobController {
                 return ResponseEntity.badRequest().body(bindingResult.getFieldErrors());
             }
             if(jobService.existsByIdAndVersion(id, ifMatch))
+		// replace with find
+		// set job.setId()
+		// set job.setVersion()		
                 return ResponseEntity.status(HttpStatus.OK).body(jobService.updateJob(job));
             else
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

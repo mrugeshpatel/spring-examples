@@ -49,8 +49,8 @@ public class JobServiceImpl implements JobService{
     public Optional<JobDto> findJob(long id) {
         return jobRepository.findJobById(id);
         /*return jobRepository.findById(id)
-                .map(job -> Optional.of(modelMapper.map(job, JobDto.class)))
-                .orElse(Optional.empty());*/
+                .map(job -> modelMapper.map(job, JobDto.class));
+*/
     }
 
     @Override
