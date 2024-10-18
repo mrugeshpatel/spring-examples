@@ -5,11 +5,14 @@ import com.elance.job.dto.JobPageDto;
 import com.elance.job.exception.JobNotFoundException;
 import com.elance.job.service.JobService;
 import com.elance.job.model.Job;
+import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -19,6 +22,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/jobs/")
+@Validated
 public class JobController {
 
     private static Logger logger = LogManager.getLogger(JobController.class.getName());
@@ -55,24 +59,24 @@ public class JobController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<JobDto> getJob(@PathVariable Long id){
-        logger.info("Starting get job with id {}", id);
+    public ResponseEntity<JobDto> findJob(@PathVariable Long id){
+        logger.info("Starting find job with id {}", id);
         try{
-            JobDto jobDto = jobService.getJob(id);
-            return ResponseEntity.ok(jobDto);
-        }catch (JobNotFoundException ex) {
-            logger.info(ex);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return jobService.findJob(id).map(jobDto -> ResponseEntity.ok(jobDto))
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NO_CONTENT).build());
         } catch (Exception e) {
-            logger.error("Error occurred while getting job with id {}", id);
+            logger.error("Error occurred while getting job with id {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @PostMapping("job")
-    public ResponseEntity<JobDto> postJob(@RequestBody JobDto job) {
+    @PostMapping()
+    public ResponseEntity<?> postJob(@Valid @RequestBody JobDto job, BindingResult bindingResult) {
         logger.info("Starting job post");
         try {
+            if (bindingResult.hasErrors()) {
+                return ResponseEntity.badRequest().body(bindingResult.getFieldErrors());
+            }
             JobDto newJob = jobService.postJob(job);
             logger.info("Job id {} posted successfully", newJob.getId());
             return ResponseEntity
@@ -81,42 +85,40 @@ public class JobController {
                     .body(newJob);
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @PutMapping("job")
-    public ResponseEntity<JobDto> putJob(@RequestBody JobDto job) {
+    @PutMapping("{id})")
+    public ResponseEntity<?> putJob(@Valid @RequestBody JobDto job,
+                                         @PathVariable Long id,
+                                         @RequestHeader("If-Match") Long ifMatch,
+                                         BindingResult bindingResult) {
         logger.info("Starting job put");
         try {
-            if(job.getId() == null ||  job.getVersion() == null)
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-            else if(jobService.findByIdAndVersion(job.getId(), job.getVersion())
-                    .isPresent())
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-            else
+            if (bindingResult.hasErrors()) {
+                return ResponseEntity.badRequest().body(bindingResult.getFieldErrors());
+            }
+            if(jobService.existsByIdAndVersion(id, ifMatch))
                 return ResponseEntity.status(HttpStatus.OK).body(jobService.updateJob(job));
+            else
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
-            logger.error("Starting get job with id {}", job.getId(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @GetMapping("/jobs/{id}/applicants")
     public ResponseEntity<JobDto> getJobAndApplicants(@PathVariable Long id){
-        logger.info("Starting get job with application,  job id {}", id);
+        logger.info("Starting get job with application, job id {}", id);
         try{
-            Optional<JobDto> job = jobService.getJob(id);
-            if(job.isPresent())
-                return ResponseEntity.ok(jobService.getJob(id).get());
-
-            logger.info("There is no job with id {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            Optional<JobDto> jobAndApplicants = jobService.findJobAndApplicants(id);
+            return jobAndApplicants.map(jobDto -> ResponseEntity.ok(jobDto))
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NO_CONTENT).build());
         }catch (Exception e) {
             logger.error("Error occurred while getting job with id {}", id);
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

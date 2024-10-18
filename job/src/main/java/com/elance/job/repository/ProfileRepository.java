@@ -15,27 +15,4 @@ import java.util.Optional;
 
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
-
-    public Optional<Profile> findByEmail(String email);
-
-     @Query("SELECT new com.elance.job.dto.ProfileDto(p.id, p.version, p.firstName, p.lastName," +
-            "p.email, p.phone, p.address, p.skillSet, p.createdOn, p.updatedOn, null)" +
-            "FROM Profile p")
-     List<ProfileDto> findAllProfile();
-
-    @Query("SELECT new com.elance.job.dto.ProfileDto(p.id, p.version, p.firstName, p.lastName, " +
-            "p.email, p.phone, p.address, p.skillSet, p.createdOn, p.updatedOn, null) " +
-            "FROM Profile p WHERE p.id = :id")
-    public Optional<JobDto> findProfileById(@Param("id") Long id);
-
-    @Query("SELECT p FROM Profile p JOIN p.applications pa JOIN pa.job j WHERE p.id = :profileId")
-    public Optional<Job> findProfileWithApplication(@Param("profileId") Long profileId);
-
-    @Query("SELECT new com.elance.job.dto.ProfileDto(p.id, p.version, p.firstName, p.lastName, " +
-            "p.email, p.phone, p.address, p.skillSet, p.createdOn, p.updatedOn, null) " +
-            "FROM Profile p WHERE p.id = :id AND p.version = :version")
-    public Optional<JobDto> findByIdAndVersion(@Param("id") Long id,
-                                               @Param("version") Long version);
-
-
 }

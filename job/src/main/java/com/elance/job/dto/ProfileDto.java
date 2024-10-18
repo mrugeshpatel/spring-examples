@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,10 +27,11 @@ public class ProfileDto {
     private String phone;
     private String address;
     private String skillSet;
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date createdOn;
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date updatedOn;
+    @JsonFormat(pattern = "yyyy-MM-dd-HH-mm-ss")
+    private LocalDateTime createdOn;
+    @JsonFormat(pattern = "yyyy-MM-dd-HH-mm-ss")
+    private LocalDateTime updatedOn;
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Set<JobApplicant> applications = new HashSet<JobApplicant>();
 }

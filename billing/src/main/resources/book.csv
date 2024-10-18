@@ -1,0 +1,9 @@
+Id,Title,Description,Published,Price,PublishedDate
+1,Spring Boot,Spring boot desc,FALSE,5.5,2023-09-12
+2,Spring Data,Data Description,TRUE,11,2024-04-11
+3,MySQL Database,Database desc,TRUE,10,2024-01-01
+4,Hibernate,Hibernate Description,FALSE,12,2022-11-10
+5,Spring Cloud,Cloud des,TRUE,5.1,2021-05-17
+6,Microservices,Microservices desc,FALSE,7,2022-01-22
+7,MongoDB Database,MongoDB desc,TRUE,20.5,2021-02-17
+8,Spring Data JPA,JPA desc,TRUE,22.3,2020-04-29

@@ -46,19 +46,17 @@ public class JobServiceImpl implements JobService{
     }
 
     @Override
-    public JobDto getJob(long id) {
-        return jobRepository.findJobById(id).orElseThrow(
-                () -> new JobNotFoundException("Job not found,id: "+ id));
+    public Optional<JobDto> findJob(long id) {
+        return jobRepository.findJobById(id);
         /*return jobRepository.findById(id)
                 .map(job -> Optional.of(modelMapper.map(job, JobDto.class)))
                 .orElse(Optional.empty());*/
     }
 
     @Override
-    public JobDto getJobAndApplicants(long jobId) {
-        Job job = jobRepository.findJobWithApplicantById(jobId).orElseThrow(
-                () -> new JobNotFoundException("Job not found,id: "+ jobId));
-        return modelMapper.map(job, JobDto.class);
+    public Optional<JobDto> findJobAndApplicants(long jobId) {
+        Optional<Job> jobWithApplicant = jobRepository.findJobWithApplicantById(jobId);
+        return jobWithApplicant.map(job -> modelMapper.map(job, JobDto.class));
     }
     @Override
     public JobDto postJob(JobDto jobDto) {
@@ -67,10 +65,8 @@ public class JobServiceImpl implements JobService{
     }
 
     @Override
-    public JobDto findByIdAndVersion(long id, long version) {
-        return jobRepository.findByIdAndVersion(id, version)
-                .orElseThrow(() -> new JobNotFoundException("Job not found,id"));
-
+    public boolean existsByIdAndVersion(long id, long version) {
+        return jobRepository.existsByIdAndVersion(id, version);
     }
 
     @Override
